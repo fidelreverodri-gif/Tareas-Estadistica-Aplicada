@@ -663,7 +663,43 @@ ggplot(data.frame(iteraciones = iteraciones_fallidas), aes(x = iteraciones)) +
 ::: {#exr-grafico}
 Implemente una función que tome como parámetros $(r, p, n_{sim})$ y devuelva un gráfico comparativo entre la suma de geométricas y la binomial negativa.
 :::
+```{r}
+neg_binomial_comparacion <- function(r, p, n_sim = 100000) {
+  set.seed(456)
+  
+  # --- Suma de r variables geométricas ---
+  # Geométrica en R: número de fracasos antes del primer éxito: rgeom()
+  suma_geom <- replicate(n_sim, sum(rgeom(r, prob = p)))
+  
+  # --- Binomial Negativa: número de fracasos hasta r-ésimo éxito ---
+  # En R, rnbinom(n, size=r, prob=p) genera esto directamente
+  binom_neg <- rnbinom(n_sim, size = r, prob = p)
+  
+  # --- Graficar histogramas comparativos ---
+  hist(suma_geom, breaks = seq(min(suma_geom)-0.5, max(suma_geom)+0.5, 1),
+       probability = TRUE, col = rgb(0,0,1,0.5), 
+       main = paste("Suma de Geométricas vs Binomial Negativa (r =", r, ", p =", p, ")"),
+       xlab = "Número de fracasos", ylab = "Probabilidad")
+  
+  hist(binom_neg, breaks = seq(min(binom_neg)-0.5, max(binom_neg)+0.5, 1),
+       probability = TRUE, col = rgb(1,0,0,0.5), add = TRUE)
+  
+  legend("topright", legend = c("Suma de geométricas", "Binomial negativa"),
+         fill = c(rgb(0,0,1,0.5), rgb(1,0,0,0.5)))
+  
+  # --- Valores teóricos (opcional) ---
+  x_vals <- 0:max(suma_geom)
+  lines(x_vals, dnbinom(x_vals, size = r, prob = p), col="#66CD00", lwd=2)
+  legend("topleft", legend=c("PMF teórica Binomial Negativa"), col="#66CD00", lwd=2)
+  
+  # Retornar lista con resultados
+  return(list(suma_geom=suma_geom, binom_neg=binom_neg))
+}
 
+# --- Ejemplo de uso ---
+resultado <- neg_binomial_comparacion(r = 10, p = 0.5, n_sim = 10000)
+
+```
 ::: {#exr-baloncesto}
 Un jugador de baloncesto tiene 70% de efectividad en tiros libres. En una sesión de entrenamiento quiere anotar 8 tiros libres consecutivos exitosos.
 
@@ -671,7 +707,33 @@ a)  Modele el problema usando la proposición de suma de geométricas
 b)  Calcule el número esperado de tiros fallados
 c)  Simule 1000 sesiones de entrenamiento y compare con el valor teórico
 :::
+```{r}
+set.seed(123)
 
+# Parámetros
+r <- 8
+p <- 0.7
+n_sim <- 1000
+
+# --- Simulación: número de fallos antes de 8 tiros libres exitosos ---
+fallos <- rnbinom(n_sim, size = r, prob = p)
+
+# --- Estadísticas ---
+media_sim <- mean(fallos)
+cat("Número esperado de tiros fallados (teórico):", round(r*(1-p)/p,4), "\n")
+cat("Número promedio de tiros fallados en simulación:", round(media_sim,4), "\n")
+
+# --- Histograma comparativo con PMF teórica ---
+hist(fallos, breaks = (min(fallos):(max(fallos)+1))-0.5, probability = TRUE,
+     col = "#40E0D0", main = "Tiros fallados antes de 8 éxitos", xlab = "Número de fallos")
+
+x_vals <- 0:max(fallos)
+lines(x_vals, dnbinom(x_vals, size=r, prob=p), col="#FF8247", lwd=2)
+legend("topright", legend=c("Simulación","Binomial Negativa teórica"),
+       col=c("#40E0D0","#FF8247"), lwd=c(10,2))
+
+
+```
 ::: {#exr-biotecnologia}
 Un laboratorio está desarrollando un nuevo medicamento. Las pruebas tienen 30% de probabilidad de ser exitosas. Necesitan 4 pruebas exitosas para continuar con la siguiente fase.
 
@@ -679,3 +741,22 @@ a)  ¿Cuál es la probabilidad de tener exactamente 12 pruebas fallidas?
 b)  ¿Cuál es la probabilidad de necesitar más de 20 pruebas fallidas?
 c)  Si el costo de cada prueba es \$10,000, ¿cuál es el costo esperado en pruebas fallidas?
 :::
+```{r}
+# --- Parámetros ---
+r <- 4
+p <- 0.3
+costo_por_prueba <- 10000
+
+# a) Probabilidad de exactamente 12 fallos
+prob_12 <- dnbinom(12, size=r, prob=p)
+cat("a) Probabilidad de exactamente 12 fallos:", round(prob_12,6), "\n")
+
+# b) Probabilidad de más de 20 fallos
+prob_mas_20 <- 1 - pnbinom(20, size=r, prob=p)
+cat("b) Probabilidad de más de 20 fallos:", round(prob_mas_20,6), "\n")
+
+# c) Costo esperado en pruebas fallidas
+esperado_fallos <- r * (1-p)/p
+costo_esperado <- esperado_fallos * costo_por_prueba
+cat("c) Costo esperado en pruebas fallidas: $", round(costo_esperado,2), "\n")
+```
