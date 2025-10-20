@@ -708,7 +708,7 @@ b)  Calcule el número esperado de tiros fallados
 c)  Simule 1000 sesiones de entrenamiento y compare con el valor teórico
 :::
 ```{r}
-set.seed(123)
+set.seed(234)
 
 # Parámetros
 r <- 8
@@ -760,3 +760,4 @@ esperado_fallos <- r * (1-p)/p
 costo_esperado <- esperado_fallos * costo_por_prueba
 cat("c) Costo esperado en pruebas fallidas: $", round(costo_esperado,2), "\n")
 ```
+
