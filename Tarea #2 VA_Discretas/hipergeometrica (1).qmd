@@ -11,14 +11,12 @@ text-align: justify}
 ```
 
 ```{r}
-# ==================================================
 # DISTRIBUCIÓN HIPERGEOMÉTRICA
-# ==================================================
 # X ~ Hypergeom(N, K, n)
 # N = tamaño de la población
 # K = número de éxitos en la población
 # n = tamaño de la muestra
-# ==================================================
+
 
 # --- Ejemplo 1: Probabilidades exactas ---
 # Supongamos una población de 20 piezas, 5 defectuosas.
@@ -96,4 +94,5 @@ legend("topright", legend=c("Simulación","Distribución teórica"),
 
 ```
 ```
+
 
