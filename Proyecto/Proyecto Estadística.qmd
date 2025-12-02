@@ -1,0 +1,538 @@
+---
+title: "Proyecto Estadística Aplicada"
+author: "Patricia Puga, Dario Ortiz, Fidel Reveles"
+format: html
+editor: visual
+---
+
+**“Factores que determinan la probabilidad de ahorrar en México”**
+
+*RESUMEN*
+
+*El presente proyecto analiza las variables que intervienen en la probabilidad de ahorro* *de una persona en México 2024. A partir de la encuesta nacional financiera ENIF, se* *estima un modelo logístico que utiliza la variable dependiente la decisión de ahorro (1 si* *una persona ahorra y 0 si no es así). Entre las variables explicativas se encuentran el* *nivel de ingreso, escolaridad, tipo de ingreso, género y el acceso a instrumentos* *financieros.*
+
+*Adicionalmente se calculó la Propensión Marginal a Ahorrar (PMA) para identificar* *cómo es que los cambios en el ingreso de una persona influyen en la capacidad y* *disposición en el nivel del ahorro.*
+
+**INTRODUCCIÓN.**
+
+*Una persona ahorra de forma activa cuando decide, reservar dinero para el futuro en* *algún instrumento financiero formal o informal. En México, el ahorro activo y formal* *continúa siendo una práctica limitada, a pesar del crecimiento en la oferta de servicios* *financieros y de los esfuerzos por ampliar la inclusión financiera. Sabemos y* *conocemos que mucha gente guarda su dinero en casa, debajo del colchón, lo cual* *reduce su confianza en la seguridad financiera y su capacidad de enfrentar emergencias* *económicas.* *Aunque se reconoce que variables como el ingreso, la educación y el acceso a* *instrumentos financieros influyen en el comportamiento de ahorro, no es un dado* *certero que afirme este supuesto. Entonces el ahorro no debería ser una opción si no* *más un hábito, porque la salud financiera es más importante que preguntarte cada fin de* *mes si te va a alcanzar o si ya van a pagar, pero ¿Qué hace que una persona decida* *ahorrar?* *El ahorro es importante para lograr un equilibrio financiero en los hogares de los* *mexicanos, y para que se de un buen crecimiento económico seguro. Pero a decir* *verdad, en nuestro país existe una cultura en donde se da una mezcla de nula educación* *financiera, causas como la informalidad laboral y un desigual sistema financiero lo que* *limita la capacidad de ahorrar de los mexicanos.* *Analizar los determinantes del ahorro mediante un modelo logit proporciona evidencia* *estadística sobre las variables que influyen en esta conducta, además complementar el* *análisis con la Propensión Marginal a Ahorrar (PMA) agrega un valor adicional:* *permite entender no sólo quién ahorra, sino cuánto del ingreso adicional estaría* *dispuesto a destinar al ahorro.* *Nuestra hipótesis general es que las personas con mayor ingreso, educación y acceso al* *sistema financiero tienen más probabilidad de poder ahorrar.* *H0: Ninguna variable del modelo influye significativamente en la probabilidad de ahorrar.* *H1: Al menos una variable influye en la probabilidad de ahorrar.* *De modo que nuestro objetivo es; Encontrar las variables que se relacionan con la* *probabilidad de ahorrar y estimar una propensión marginal al ahorrar para identificar* *cómo responde el ahorro frente a cambios en el ingreso.*
+
+**Como objetivos específicos:** *1. Estimar un modelo logístico que determine la probabilidad de ahorro según las* *variables de: ingreso, educación, género, cuenta de nómina , edad, capacidad de* *pago , si tiene tarjetas de crédito, su capacidad de pago, hábitos financieros y* *tipo de ingreso ( fijo o variable).* *2. Calcular la Propensión Marginal al Ahorro (PMA).* *3. Analizar la relación entre la Propensión Marginal al Ahorro y características* *socioeconómicas.*
+
+**Modelo Logit:** *El modelo logístico, usa la variable dependiente es considerada como* *una variable binaria o “dummy” que toma dos valores, principalmente representados* *como 0 y 1. Tomando esas variables independientes, también indicadas como variables* *predictoras, son todas aquellas que se utilizan para predecir la probabilidad del evento* *de estudio.* *El modelo logístico ocupa la función logística para poner a modelar una la relación* *entre las variables independientes y la probabilidad de que se realize el evento binario.*
+
+**Hipótesis Nula.** *La hipótesis nula es aquella hipótesis que se pretende rechazar. De* *modo que si el investigador consigue rechazar la hipótesis nula, significa que la* *hipótesis que quería demostrar en el estudio estadístico probablemente sea cierta. Por* *contra, si no se logra rechazar la hipótesis nula, quiere decir que lo más probable es que* *la suposición que pretendía probar sea falsa. Más abajo veremos cuándo se puede* *rechazar la hipótesis nula.*
+
+**Hipótesis Alternativa.** *La hipótesis alternativa es una suposición que tiene el* *investigador y para intentar probar que es cierta realizará un análisis estadístico. Así* *pues, al finalizar la prueba de hipótesis se aceptará o se rechazará la hipótesis alternativa* *en función de los resultados obtenidos.* *Prueba de significancia de los coeficientes de regresión: la prueba t* *Es un procedimiento que utiliza los resultados muestrales para verificar la verdad o* *falsedad de una hipótesis nula. La idea básica de las pruebas de significancia es la de un* *estadístico de prueba (un estimador) y su distribución muestral según la hipótesis* *nula.\[1\]*
+
+*En el lenguaje de las pruebas de significancia, se menciona que un estadístico es* *significativo si su valor de prueba cae en una región crítica. En esta ocasión, se logra el* *rechazo de la Ho. En este sentido, se menciona que una prueba no es estadísticamente* *significativa si su valor del mismo estadístico de prueba, cae en la región de* *aceptación.\[1\]*
+
+**Análisis de varianza (ANOVA).** *El estudio de los componentes de SCT, es decir, SCT* *= la suma de cuadrados explicada (SCE) y la suma de cuadrados de residuos (SCR).\[1\]*
+
+**Cargamos los Paquetes necesarios**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| code-fold: true
+
+
+library(pROC)      
+library(ggplot2)   
+library(dplyr)
+library(caret) 
+library(tidyverse)
+library(margins)
+library(car)
+library(tidyverse)
+library(RColorBrewer)
+library(janitor)
+```
+
+**Cargamos nuestra base de datos**
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+#| code-fold: true
+
+Base_de_datos <- read_csv("Base de datos.csv")
+head(Base_de_datos)
+dim(Base_de_datos)
+
+```
+
+**Limpieza de la base de datos y selección de variables**
+
+*La base da datos fue creada apartir de la ENIF Encuesta Nacional de Inclusion Financiera, la cual contenia consigo 4 carpetas, de las cuales se fueron adjuntando las variables mas relevantes que incidian en si una persona ahorraba o no.*
+
+```{r}
+#| code-fold: true
+
+
+colnames(Base_de_datos) <-c("observacion","sexo","edad","educacion","ingresos","cuenta_nomina", "tipo_ingreso", "tarjeta_de_credito", "uso_credito", "capacidad_pago","mentalidad", "ahorro", "porcentaje_de_ahorro", "ahorro_pesos" )
+
+
+# Variable dependiente: ahorro, 1 = Sí (ahorra), 2 = No (no ahorra)
+
+
+#Limpiamos nuestra base de datos por binario 1 y 0 en las variables donde habia 1 y 2
+
+# 1 = ahorra y 0 = no ahorra
+Base_de_datos$ahorro <- ifelse(Base_de_datos$ahorro == 1, 1, 0)
+
+# Sexo: 1 = Hombre, 2 = Mujer,  /  0 = Mujer, 1 = Hombre
+Base_de_datos$sexo <- ifelse(Base_de_datos$sexo == 1, 1, 0)
+
+# Tipo de ingreso: 1 = Fijo, 2 = Variable /  0 = Variable, 1 = Fijo
+Base_de_datos$tipo_ingreso <- ifelse(Base_de_datos$tipo_ingreso == 1, 1, 0)
+
+# Cuenta de Nomina: 1 = Si, 2 = No / 0 = No, 1 = Si
+Base_de_datos$cuenta_nomina <- ifelse(Base_de_datos$cuenta_nomina == 1, 1, 0)
+
+# Tarjeta de Credito: 1 = Si,  2 = No / 0 = No, 1 = Si
+Base_de_datos$tarjeta_de_credito <- ifelse(Base_de_datos$tarjeta_de_credito == 1, 1, 0)
+
+```
+
+**Cargamos Datos**
+
+```{r}
+#| code-fold: true
+
+
+head(Base_de_datos)
+colnames(Base_de_datos[2:11])
+
+```
+
+**Definimos nuestras variables**
+
+```{r}
+#| code-fold: true
+
+
+y <- Base_de_datos$ahorro
+x <- Base_de_datos[ , colnames(Base_de_datos)[2:11]]
+x
+
+```
+
+**Matriz de Dispersión: Ahorro y Variables Explicativas**
+
+```{r}
+#| code-fold: true
+
+
+pairs(cbind(y, x),
+      main = "Matriz de Dispersión: Ahorro y Variables Explicativas")
+```
+
+**Boxplot**
+
+```{r}
+#| code-fold: true
+
+var_factor <- names(datos)[-c(1, 3,5)]
+
+for(vf in var_factor){
+  grafica <- ggplot(datos)+
+    geom_boxplot(aes(eval(as.name(vf)), ingresos, fill= eval(as.name(vf))))+
+    labs(x = vf, y="Ingreso", fill = vf)+
+    theme_bw()
+  print(grafica)
+}
+
+```
+
+**Estimamos nuestro modelo:**
+
+```{r}
+#| code-fold: true
+
+
+# Hacer la Regresión  LOGIT con todas la variables
+model_1 <- glm(y ~.,   data = x, family = "binomial")
+summary(model_1)
+```
+
+**Coeficientes del Modelo**
+
+```{r}
+#| code-fold: true
+
+
+exp(coef(model_1))
+```
+
+*Los coeficientes nos dicenque si son \< 1 disminyen la probabilidad de ahorro, lo que significa un efecto negativo, pero si son \> 1 aumentan estas probabilidad y el efecto es positivo.*
+
+*La mayoria de nuestras variables se encuentra poco arriba de ser \> 1, como la educación, capacidad de pago, sexo, mentalidad de ahorro.*
+
+*Podemos observar tambien que el ingreso esta cerca de ser = 1, que significa que no tiene efecto en la probabilidad que el evento ocurra o no.*
+
+^*Para evaluar si nuestro modelo tiene multicolnaiedad ocuparemos el VIF*^
+
+**VIF**
+
+```{r}
+#| code-fold: true
+
+
+vif(model_1)
+```
+
+*los resultados los podemos interpretar como \< 5 no existe multicolaniedad, en este sentido no hay variables que esten encimadas.*
+
+**Efectos Marginales**
+
+*Calcularemos tambies los efectos marginales de las variables sobre la probabilidad de exito del primer modelo, nos permitira observar como o cuanto cambia la probabilidad de ahorrar cuando una variable aumenta en una unidad mientras que las demas se mantienen constantes:*
+
+```{r}
+#| code-fold: true
+
+
+margins(model_1)
+```
+
+*Entonces usaremos un metodo de transfromación en la variable de los ingresos, para evitar los sesgos y mejorar el modelo.*
+
+**Creación de variable logaritmica**
+
+```{r}
+#| code-fold: true
+
+
+# Crear variable logarítmica del ingreso
+
+Base_de_datos <- Base_de_datos %>%
+  mutate(log_ingresos = log(ingresos + 1))
+
+
+```
+
+**Volvemos a estimar el modelo con este ajuste**
+
+```{r}
+#| code-fold: true
+
+
+#  Hacer la Regresión Lineal con el ajuste en el ingreso 
+model_2 <- glm(ahorro ~ sexo + edad + educacion + log_ingresos + tipo_ingreso + cuenta_nomina + tarjeta_de_credito + uso_credito + capacidad_pago  + mentalidad,   data = Base_de_datos, family = binomial)
+
+summary(model_2)
+```
+
+*El siguente codigo nos mostrara el cambio porcentual en la probabilidad del ahorro con algun cambio en cada variable*
+
+```{r}
+#| code-fold: true
+
+
+exp(coef(model_2))
+```
+
+*Se interpreta de la siguente manera; 1. Para la Educación = 1.066, siginifa que por cada unidad adicional de educación la probabilidad del ahorro aumenta en .066%. 2. Para la varaible de sexo = 1.17, por cada unidad adicional la probabilidad de ahorrar aumenta en .17%*
+
+**Efectos marginales**
+
+```{r}
+#| code-fold: true
+
+
+margins(model_2)
+```
+
+*Los efectos de las variables, sexo, educación, ingreso(log), la capacidad de pago y la mentalidad tienen efecto positivo de modo que pueden ser inflyentes en el aumento sobre la pribabilidad del ahorro.*
+
+*Mientras que las variables, edad, tipo de ingreso, tener cuenta de nomina, ademas del tener credito y usarlo con frecuencia afectan negativamente a esta probabilidad de ahorro, pues estraian reduciendo ese porcentaje.*
+
+```{r}
+#| code-fold: true
+
+
+momio <- exp(coefficients(model_2))   #exp es para obtener los momios
+momio
+
+```
+
+```{r}
+#| code-fold: true
+
+
+# Regresión con las variables  cerca de ser significativas
+model_3 <- glm(ahorro ~ sexo + tipo_ingreso + cuenta_nomina, data = Base_de_datos, family = binomial)
+
+summary(model_3)
+
+```
+
+*La variable "sexo", influye en la probabilidad de ahorro, lo que significa que de manera positiva tiene relacion directa con lo que se intenta predecir, que es la probabilidad de que una persona ahorre.*
+
+**Para calcular la probabilidad predicha de ahorrar utilizamos el sigueinte codigo:**
+
+```{r}
+#| code-fold: true
+
+
+# Probabilidad estimada de ahorrar
+Base_de_datos$prob_ahorro <- predict(model_3, type = "response")
+head(Base_de_datos[, c("prob_ahorro", "ahorro")])
+
+```
+
+*El modelo logra capturar tendencias generales en el ahorro, mediante las variables que se muestran al momento del caclulo de la probabilidad de que una persona ahorre.*
+
+**Curva ROC**
+
+```{r}
+#| code-fold: true
+
+
+# Curva ROC y AUC
+roc_curve <- roc(Base_de_datos$ahorro, Base_de_datos$prob_ahorro)
+plot(roc_curve, main = "Curva ROC - Modelo Logit de Ahorro")
+auc(roc_curve)
+```
+
+*Finalmente, para evaluar la capacidad predictiva, se construyó la CURVA ROC.*
+
+**Modelo Lineal de Propencion Marginal al ahorro**
+
+**Propensión Marginal del Ahorro**
+
+```{r}
+#| code-fold: true
+
+
+library(readr)
+```
+
+**Cargamos Datos**
+
+```{r}
+#| code-fold: true
+#| base_de datos <- read_csv("Base_de_datos.csv")
+```
+
+```{r}
+#| code-fold: true
+
+head(Base_de_datos)
+```
+
+**Modelo lineal del ahorro**
+
+```{r}
+#| code-fold: true
+
+modelo <- lm(ahorro_pesos ~ ingresos, data = Base_de_datos)
+
+summary(modelo)
+```
+
+**Calculo de la propension marginal a ahorrar**
+
+```{r}
+#| code-fold: true
+
+PMS <- coef(modelo)[2]
+PMS
+```
+
+**Relacion Ahorro-Ingreso**
+
+```{r}
+#| code-fold: true
+
+plot(Base_de_datos$ingresos, Base_de_datos$ahorro,
+     main = "Relación Ahorro–Ingreso",
+     xlab = "Ingresos",
+     ylab = "Ahorro")
+
+abline(modelo, lwd = 2)
+
+```
+
+**Modelo lineal del ahorro**
+
+```{r}
+#| code-fold: true
+
+modelo <- lm(ahorro_pesos ~ log_ingresos, data = Base_de_datos)
+
+summary(modelo)
+```
+
+**Calculo de la propension marginal a ahorrar**
+
+```{r}
+#| code-fold: true
+
+PMS <- coef(modelo)[2]
+PMS
+```
+
+**Relacion Ahorro-Ingreso**
+
+```{r}
+#| code-fold: true
+
+plot(Base_de_datos$log_ingresos, Base_de_datos$ahorro,
+     main = "Relación Ahorro–Ingreso",
+     xlab = "Ingresos",
+     ylab = "Ahorro")
+
+abline(modelo, lwd = 2)
+```
+
+*Prueba CUSUM Para evaluar la estabilidad de los coeficientes del modelo Logit a lo largo de las observaciones, se aplicó la prueba CUSUM (Cumulative Sum of Residuals). Esta prueba permite identificar si el modelo permanece estable o si presenta puntos de quiebre estructural que afecten su capacidad predictiva.*
+
+```{r}
+#| code-fold: true
+
+# CUSUM con variables: ingresos → ahorro_pesos
+
+library(MTS)
+library(strucchange)
+
+# Seleccionar variables correctas
+
+x <- Base_de_datos$ingresos
+y <- Base_de_datos$ahorro_pesos
+
+# Modelo RLS (Recursive Least Squares)
+
+res_ <- MTS::RLS(x, y)
+
+# Residuos recursivos
+
+resi_t <- res_$resi
+
+# ----- Gráfico de residuos -----
+
+plot(resi_t, type = "l",
+main = "Residuos RLS (Ingresos → Ahorro en pesos)",
+xlab = "Observación",
+ylab = "Residuo")
+abline(h = 0, col = "red", lty = 2)
+
+# ----- Test CUSUM -----
+
+ef <- efp(ahorro_pesos ~ ingresos,
+data = Base_de_datos,
+type = "Rec-CUSUM")
+
+plot(ef,
+main = "CUSUM - Estabilidad de la relación Ingresos → Ahorro en pesos",
+ylab = "CUSUM")
+
+```
+
+*El gráfico de residuos muestra que los errores del modelo se distribuyen de forma aleatoria alrededor de cero, sin patrones evidentes, lo que indica que el modelo capta adecuadamente la relación entre ingresos y ahorro. Por su parte, el gráfico del CUSUM revela que la línea del estadístico permanece dentro de las bandas críticas durante toda la muestra, lo que significa que no hay quiebres estructurales y que la relación entre ingresos y ahorro es estable en el tiempo.*
+
+*Los residuos permiten evaluar si el modelo está bien especificado. Si se distribuyen de forma aleatoria alrededor de cero, significa que el modelo no deja patrones sin explicar, y por lo tanto, la relación entre ingreso y ahorro está bien capturada.*
+
+*El test CUSUM sirve para verificar si los coeficientes del modelo son estables en el tiempo. Si la línea permanece dentro de las bandas críticas , significa que no hay quiebres estructurales, es decir, que la relación entre ingreso y ahorro no cambia a lo largo de la muestra.*
+
+**VARIABLES**
+
+```{r}
+#| code-fold: true
+
+
+datos <- read.csv("Base de datos.csv")
+datos <- datos |> clean_names()
+
+
+
+datos$sexo <- factor(datos$sexo)
+datos$educacion  <- factor(datos$educacion)
+datos$cuenta_nomina <- factor(datos$cuenta_nomina)
+datos$tipo_de_ingreso <- factor(datos$tipo_de_ingreso)
+datos$tarjeta_de_credito <- factor(datos$tarjeta_de_credito)
+datos$frecuencia_de_uso <- factor(datos$frecuencia_de_uso)
+datos$dicsiplina_financiera <- factor(datos$dicsiplina_financiera)
+datos$actitud <- factor(datos$actitud)
+datos$ahorro <- factor(datos$ahorro)
+
+glimpse(datos)
+summary(datos)
+
+```
+
+**Densidades de las variables del modelo**
+
+```{r}
+#| code-fold: true
+
+
+
+for(vf in var_factor){
+  grafica <- ggplot(datos)+
+    geom_density(aes(ingresos, fill= eval(as.name(vf))), alpha=0.5)+
+    labs(x = vf, y="Ingreso", fill = vf)+
+    scale_fill_brewer(palette = "Dark2")+
+    theme_bw()
+  print(grafica)
+}
+```
+
+```{r}
+datos_nomina <- datos |> select(ingresos, cuenta_nomina)
+media_ingresos <- mean(datos$ingresos)
+
+datos_nomina_grupos <- datos_nomina |> group_by(cuenta_nomina) |> 
+  summarise(n_i = n(), media_grupo = mean(ingresos), var_grupo = var(ingresos))
+datos_nomina_grupos <- datos_nomina_grupos |> ungroup() |> mutate(SSB= n_i*(media_grupo-media_ingresos)^2) 
+
+
+datos <- left_join(datos, select(datos_nomina_grupos, cuenta_nomina, media_grupo))
+
+datos <- datos |> mutate(SSW = (ingresos-media_grupo)^2)
+
+k <- length(levels(datos$cuenta_nomina))
+n <- nrow(datos)
+
+SSB <- sum(datos_nomina_grupos$SSB)
+SSB
+MSB <- SSB/(k-1)
+MSB
+SSW <- sum(datos$SSW)
+MSW <- SSW/(n-k)
+MSW
+
+F_0 <- MSB/MSW
+F_0
+
+valor_p <- pf(F_0,k-1, n-k, lower.tail = FALSE)
+
+valor_p
+```
+
+**ANOVA Nomina**
+
+```{r}
+anova_nomina <- aov(ingresos~cuenta_nomina, data = datos)
+anova_nomina
+
+summary(anova_nomina)
+
+t.test(datos$ingresos[datos$cuenta_nomina == "1"], datos$ingresos[datos$cuenta_nomina == "2"])
+```
+
+**ANOVA**
+
+```{r}
+anova_fu <- aov(ingresos~ frecuencia_de_uso, data=datos)
+anova_fu
+summary(anova_fu)
+```
+
+**ANOVA AHORRO**
+
+```{r}
+anova_ahorro <- aov(ingresos~ ahorro, data =datos)
+anova_ahorro
+summary(anova_ahorro)
+
+```
+
+*El análisis de la varianza y la regresión lineal empleada al modelo que vincula al ahorro e ingreso revela que no existe certeza estadísticamente significativa, de que el ingreso pueda explicar la conducta del ahorro de la muestra previamente analizada.*
